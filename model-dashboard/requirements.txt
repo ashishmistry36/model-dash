@@ -1,0 +1,6 @@
+minio
+pandas
+pydantic
+streamlit
+streamlit-cookies-controller
+streamlit-oauth
