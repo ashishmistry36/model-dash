@@ -219,7 +219,7 @@ def login():
         st.markdown("""
         <div style="text-align: center; color: #666; font-size: 0.85rem;">
             <p>Need access? Contact your system administrator.</p>
-            <p>Looking for the <a href="https://xnat.mdanderson.org/argo/workflows/inference" target="_blank">Workflows Dashboard</a>?</p>
+            <p>Looking for the <a href="https://website/argo/workflows/inference" target="_blank">Workflows Dashboard</a>?</p>
         </div>
         """, unsafe_allow_html=True)
 
