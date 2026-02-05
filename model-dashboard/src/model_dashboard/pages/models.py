@@ -15,7 +15,7 @@ st.header('Current Models')
 st.markdown(f'*Select a model to edit it by clicking the checkbox next to it in the leftmost column*')
 st.divider()
 
-if 'db' not in st.session_state:
+if 'db' not in st.session_state or 'user' not in st.session_state or not st.session_state.user:
     st.switch_page('app.py')
 else:
     db = st.session_state.db._instance
@@ -26,8 +26,8 @@ else:
         desc = str(v.description or '')
         create_date=v.create_date
         last_modified_date=v.last_modified_date
-        inf_info = v.inference_information
-        version = inf_info["version"]
+        inf_info = v.inference_information or {}
+        version = inf_info.get("version", "")
         while len(desc) > 75:
             desc = ' '.join(desc.split(' ')[:-1]) + '...'
         models.append({

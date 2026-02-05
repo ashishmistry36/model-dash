@@ -1,0 +1,80 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: model-dashboard
+  namespace: model-dashboard
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: model-dashboard
+  template:
+    metadata:
+      labels:
+        app: model-dashboard
+    spec:
+      initContainers:
+      # Wait for MinIO to be ready
+      - name: wait-for-minio
+        image: busybox:1.36
+        command: ['sh', '-c', 'until nc -z minio 9000; do echo waiting for minio; sleep 2; done; echo minio is ready']
+      containers:
+      - name: dashboard
+        image: model-dashboard:latest
+        imagePullPolicy: Never  # Use local image
+        ports:
+        - containerPort: 8501
+          name: dashboard
+        - containerPort: 8000
+          name: api
+        envFrom:
+        - configMapRef:
+            name: model-dashboard-config
+        - secretRef:
+            name: model-dashboard-secrets
+        env:
+        - name: AUTH_DB_PATH
+          value: "/data/auth/users.db"
+        - name: LOG_DIR
+          value: "/data/logs"
+        volumeMounts:
+        - name: data
+          mountPath: /data
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+        livenessProbe:
+          tcpSocket:
+            port: 8501
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 15
+          periodSeconds: 5
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: model-dashboard-data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: model-dashboard
+  namespace: model-dashboard
+spec:
+  selector:
+    app: model-dashboard
+  ports:
+  - name: dashboard
+    port: 8501
+    targetPort: 8501
+  - name: api
+    port: 8000
+    targetPort: 8000

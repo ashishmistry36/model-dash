@@ -1,6 +1,13 @@
+# Core dependencies
 minio
 pandas
 pydantic
-streamlit
+streamlit>=1.40.0
 streamlit-cookies-controller
-streamlit-oauth
+
+# Authentication
+ldap3
+
+# REST API
+fastapi
+uvicorn[standard]

@@ -2,6 +2,11 @@
 level = "info"
 messageFormat = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 
+[client]
+# Disable the "Ask AI" helper on errors
+showErrorDetails = false
+toolbarMode = "minimal"
+
 [server]
 
 # List of folders that should not be watched for changes.
@@ -50,7 +55,7 @@ runOnSave = true
 
 # The base path for the URL where Streamlit should be served from.
 # Default: ""
-baseUrlPath = "/argo-models"
+baseUrlPath = ""
 
 maxUploadSize = 10000
 

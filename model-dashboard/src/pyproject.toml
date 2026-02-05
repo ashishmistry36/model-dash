@@ -1,23 +1,39 @@
 [project]
 name = "model-dashboard"
-version = "0.1.0"
-description = "Add your description here"
+version = "2.0.0"
+description = "Inference Model Management Dashboard with LDAP authentication and REST API"
 readme = "README.md"
 authors = [
-    { name = "John Wood", email = "jwwood@mdanderson.org" }
+    
 ]
 requires-python = ">=3.10"
 dependencies = [
+    # Core dependencies
     "minio",
     "pandas",
     "pydantic",
-    "streamlit==1.45.0",
+    "streamlit>=1.40.0",
     "streamlit-cookies-controller",
-    "streamlit-oauth"
+    
+    # Authentication
+    "ldap3",
+    
+    # REST API
+    "fastapi",
+    "uvicorn[standard]",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "pytest-cov",
+    "httpx",
 ]
 
 [project.scripts]
 model-dashboard = "model_dashboard:main"
+model-api = "model_dashboard:run_api"
+model-dashboard-all = "model_dashboard:run_both"
 
 [build-system]
 requires = ["hatchling"]

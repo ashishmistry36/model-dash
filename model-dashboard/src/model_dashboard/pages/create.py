@@ -17,7 +17,7 @@ logger = logging.getLogger('model_dashboard.pages.models')
 if 'status_pct' not in st.session_state: st.session_state.status_pct = 0
 if 'submitted' not in st.session_state: st.session_state.submitted = False
 
-if 'db' not in st.session_state:
+if 'db' not in st.session_state or 'user' not in st.session_state or not st.session_state.user:
     st.switch_page('app.py')
 
 db = st.session_state.db._instance

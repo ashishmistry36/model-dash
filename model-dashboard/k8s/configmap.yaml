@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: model-dashboard-config
+  namespace: model-dashboard
+data:
+  # MinIO Configuration
+  MINIO_HOST: "minio.model-dashboard.svc.cluster.local"
+  MINIO_PORT: "9000"
+  MINIO_BUCKET: "argo-models"
+  MINIO_NAMESPACE: "model-dashboard"
+  
+  # LDAP Configuration (disabled for local testing)
+  LDAP_SERVER: "ldap://ldap.example.com:389"
+  LDAP_BASE_DN: "dc=example,dc=com"
+  LDAP_USER_DN_TEMPLATE: "uid={username},ou=users,dc=example,dc=com"
+  LDAP_SEARCH_FILTER: "(uid={username})"
+  LDAP_REQUIRED_GROUP: ""  # Empty = allow all authenticated users
+  LDAP_GROUP_ATTRIBUTE: "memberOf"
+  
+  # API Configuration
+  API_HOST: "0.0.0.0"
+  API_PORT: "8000"
+  
+  # Auth Configuration
+  API_TOKEN_EXPIRY_DAYS: "30"
+  SESSION_COOKIE_KEY: "model-dashboard-session"

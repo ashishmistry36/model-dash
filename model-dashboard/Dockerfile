@@ -29,8 +29,8 @@ COPY --chmod=775 --from=ghcr.io/astral-sh/uv:alpine /usr/local/bin/uv /usr/bin/u
 RUN groupadd -g ${XNAT_GID} ${XNAT_GROUP} && \
     useradd -m -s /bin/bash -u ${XNAT_UID} -g ${XNAT_GID} -G sudo -l ${XNAT_UNAME} && \
     printf "\n\n%s ALL=(ALL) NOPASSWD:ALL\n\n" "${XNAT_UNAME}" >> /etc/sudoers && \
-    mkdir -p $(dirname ${VENV}) /app && \
-    chown -R ${XNAT_UNAME}:${XNAT_GROUP} $(dirname ${VENV}) /app
+    mkdir -p $(dirname ${VENV}) /app /data/models/.auth /data/models/.logs && \
+    chown -R ${XNAT_UNAME}:${XNAT_GROUP} $(dirname ${VENV}) /app /data
 
 RUN uv python install ${PYTHON_VERSION}
 
@@ -47,9 +47,14 @@ RUN uv venv --python ${PYTHON_VERSION} ${VENV} && \
     uv pip install -r requirements.txt
 
 COPY --chmod=775 --chown=${XNAT_UNAME}:${XNAT_GROUP} src /app/model-dashboard
+COPY --chmod=775 --chown=${XNAT_UNAME}:${XNAT_GROUP} scripts /app/scripts
 
 RUN uv pip install -e /app/model-dashboard
 
 COPY --chmod=775 --chown=${XNAT_UNAME}:${XNAT_GROUP} config /app/model-dashboard/model_dashboard/.streamlit
 
-ENTRYPOINT ["model-dashboard"]
+# Expose both Streamlit and API ports
+EXPOSE 8501 8000
+
+# Default to running both dashboard and API
+ENTRYPOINT ["model-dashboard-all"]

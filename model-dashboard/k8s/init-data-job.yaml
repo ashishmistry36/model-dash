@@ -1,0 +1,119 @@
+# Job to initialize MinIO bucket and test data
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: init-minio-data
+  namespace: model-dashboard
+spec:
+  ttlSecondsAfterFinished: 300
+  template:
+    spec:
+      restartPolicy: OnFailure
+      initContainers:
+      # Wait for MinIO to be ready
+      - name: wait-for-minio
+        image: busybox:1.36
+        command: ['sh', '-c', 'until nc -z minio 9000; do echo waiting for minio; sleep 2; done; sleep 5; echo minio is ready']
+      containers:
+      - name: init-data
+        image: minio/mc:latest
+        command:
+        - /bin/sh
+        - -c
+        - |
+          set -e
+          
+          # Configure MinIO client
+          mc alias set myminio http://minio:9000 $MINIO_USERNAME $MINIO_PASSWORD
+          
+          # Create bucket if it doesn't exist
+          mc mb --ignore-existing myminio/argo-models
+          
+          # Create sample model data
+          echo 'Creating sample models...'
+          
+          # Model 1: nnUNet Brain Tumor
+          cat > /tmp/model1.json << 'EOF'
+          {
+            "name": "Task001_BrainTumour",
+            "network_type": "nnUNet",
+            "enabled": true,
+            "alias": "Brain Tumor Segmentation",
+            "description": "Automatic brain tumor segmentation using nnUNet architecture.",
+            "contour_names": {"1": "Whole Tumor", "2": "Enhancing Tumor", "3": "Tumor Core"},
+            "inference_information": {"version": "1.0.0", "input_modalities": ["T1", "FLAIR"]},
+            "inference_args": "--fold all",
+            "create_date": "1/15/26",
+            "last_modified_date": "1/20/26",
+            "version": "1.0.0"
+          }
+          EOF
+          mc cp /tmp/model1.json myminio/argo-models/nnUNet/Task001_BrainTumour
+          
+          # Model 2: nnUNet_v2 Liver
+          cat > /tmp/model2.json << 'EOF'
+          {
+            "name": "Dataset001_LiverSegmentation",
+            "network_type": "nnUNet_v2",
+            "enabled": true,
+            "alias": "Liver and Lesion Segmentation",
+            "description": "Automatic liver and liver lesion segmentation for CT images.",
+            "contour_names": {"1": "Liver", "2": "Liver Lesion"},
+            "inference_information": {"version": "2.5", "configuration": "3d_fullres"},
+            "inference_args": "--step_size 0.5",
+            "create_date": "12/1/25",
+            "last_modified_date": "1/25/26",
+            "version": "2.5"
+          }
+          EOF
+          mc cp /tmp/model2.json myminio/argo-models/nnUNet_v2/Dataset001_LiverSegmentation
+          
+          # Model 3: TotalSegmentator
+          cat > /tmp/model3.json << 'EOF'
+          {
+            "name": "TotalSegmentator_CT",
+            "network_type": "TotalSegmentatorV2",
+            "enabled": true,
+            "alias": "Total Segmentator",
+            "description": "Automatic segmentation of 104 anatomical structures in CT images.",
+            "contour_names": {"1": "Spleen", "2": "Kidney", "3": "Liver", "4": "Stomach"},
+            "inference_information": {"version": "2.0", "task": "total"},
+            "inference_args": "--task total",
+            "create_date": "10/1/25",
+            "last_modified_date": "1/30/26",
+            "version": "2.0"
+          }
+          EOF
+          mc cp /tmp/model3.json myminio/argo-models/TotalSegmentatorV2/TotalSegmentator_CT
+          
+          # Model 4: MIST
+          cat > /tmp/model4.json << 'EOF'
+          {
+            "name": "MIST_Prostate",
+            "network_type": "MIST",
+            "enabled": true,
+            "alias": "Prostate MRI Segmentation",
+            "description": "Prostate gland segmentation for MRI using MIST framework.",
+            "contour_names": {"1": ["Prostate"], "2": ["Peripheral Zone"]},
+            "inference_information": {"version": "0.4.8", "model": {"model_name": "SegResNet"}},
+            "inference_args": "",
+            "create_date": "9/15/25",
+            "last_modified_date": "1/10/26",
+            "version": "0.4.8"
+          }
+          EOF
+          mc cp /tmp/model4.json myminio/argo-models/MIST/MIST_Prostate
+          
+          echo 'Sample models created successfully!'
+          mc ls myminio/argo-models --recursive
+        env:
+        - name: MINIO_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: model-dashboard-secrets
+              key: MINIO_USERNAME
+        - name: MINIO_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: model-dashboard-secrets
+              key: MINIO_PASSWORD
