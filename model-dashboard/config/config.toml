@@ -55,7 +55,8 @@ runOnSave = true
 
 # The base path for the URL where Streamlit should be served from.
 # Default: ""
-baseUrlPath = ""
+# Set to /argo-models for production behind ingress, or "" for local development
+baseUrlPath = "/argo-models"
 
 maxUploadSize = 10000
 
